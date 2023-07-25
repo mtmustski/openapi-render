@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>To Do List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<h1>To Do List</h1>
+<form method="post">
+    <label>Item
+        <input type="text" name="item">
+    </label>
+    <button type="submit">Submit</button>
+</form>
+<br>
+{% for todo in todos %}
+<div class="todo">
+    <p>Item: {{ todo['item'] }} </p>
+    <p>ID: <i>{{ todo['_id'] }}</i></p>
+    <form method="POST" action="{{ url_for('delete', id=todo['_id']) }}">
+        <input type="submit" value="Delete Todo"
+               onclick="return confirm('Are you sure you want to delete this entry?')">
+    </form>
+</div>
+{% endfor %}
+</body>
+</html>
