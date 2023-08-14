@@ -1,17 +1,10 @@
 version: '3.9'
 
 services:
-  website:
+  openapi-render:
     build:
       context: .
-    env_file:
-      - .env-prod
+    environment:
+      - FLASK_APP=app/app.py
     ports:
       - '5000:5000'
-
-  mongo:
-    image: mongo
-    env_file:
-      - .env-prod
-    ports:
-      - '27017:27017'

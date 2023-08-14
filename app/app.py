@@ -1,46 +1,37 @@
+from api_doc import ApiDoc
+import json
 import os
+import yaml
 
-from bson import ObjectId
-from flask import Flask, jsonify, render_template, request, redirect, url_for
-from pymongo import MongoClient
+from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
 
-# load environment config values
-env_name = os.environ.get('ENV_NAME', '.env did not load')
-MONGO_USERNAME = os.environ.get('MONGO_INITDB_ROOT_USERNAME')
-MONGO_PASSWORD = os.environ.get('MONGO_INITDB_ROOT_PASSWORD')
 
-client = MongoClient(f'mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@mongo:27017/')
-
-db = client.flask_db
-todos = db.todos
-
-
-@app.route('/', methods=('GET', 'POST'))
+@app.route('/')
 def index():
-    if request.method == 'POST':
-        item = request.form['item']
-        todos.insert_one({'item': item})
-    all_todos = todos.find()
-    return render_template('index.html', todos=all_todos)
+    api_docs = []
+    for json_file in os.listdir(os.path.join("static", "api-docs")):
+        if json_file.endswith(".json"):
+            api_docs.append(get_api_doc(json_file))
+
+    return render_template('index.html', api_docs=api_docs)
 
 
-@app.post('/<id>/delete/')
-def delete(id):
-    todos.delete_one({"_id": ObjectId(id)})
-    return redirect(url_for('index'))
+@app.route('/<api_doc>', methods=['GET'])
+def openapi(api_doc):
+    return render_template('openapi-render.html', api=get_api_doc(api_doc + ".json"))
 
 
-@app.route('/env')
-def get_env():
-    data = {'env_name': f'{env_name}'}
-    return jsonify(data)
-
-
-@app.route('/hello')
-def hello():
-    return jsonify({'hello': 'world'})
+def get_api_doc(json_file):
+    with open(os.path.join("static", "api-docs", json_file)) as config:
+        config = json.loads(config.read())
+        with open(os.path.join("static", "api-docs", config['source'])) as api:
+            api = yaml.safe_load(api.read())
+            return ApiDoc(api['info']['title'], api['info']['description'], api['info']['version'],
+                          api['info']['contact']['name'], api['info']['contact']['url'],
+                          json_file.replace(".json", ""), config['project_page'],
+                          os.path.join("static", "api-docs", config['source']))
 
 
 if __name__ == "__main__":
