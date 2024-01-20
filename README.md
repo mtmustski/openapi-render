@@ -15,7 +15,7 @@ If you are not making changes to the codebase, you can deploy the latest docker 
 ```
 services:
     openapi-render:
-        image: ghcr.io/mtmustski/openapi-render:master
+        image: ghcr.io/mtmustski/openapi-render:v1.0.0
         container_name: openapi-render
         ports:
             - "5000:5000"
